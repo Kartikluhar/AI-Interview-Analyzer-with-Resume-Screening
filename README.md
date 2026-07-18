@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Django-Backend-092E20?style=for-the-badge&logo=django" />
   <img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react" />
-  <img src="https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge" />
   <img src="https://img.shields.io/badge/AI-Powered-blueviolet?style=for-the-badge" />
 </p>
 
