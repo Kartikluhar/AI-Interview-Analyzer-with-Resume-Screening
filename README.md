@@ -16,7 +16,7 @@ An AI-powered interview preparation platform that analyzes resumes, conducts liv
 
 **AI Interview Analyzer with Resume Screening** is a full-stack web application designed to streamline interview preparation and candidate evaluation.
 
-The platform combines **Resume Analysis**, **Live AI Interviewing**, **Speech-to-Text Processing**, and **LLM-based Evaluation** to simulate a real interview experience and generate comprehensive performance reports.
+The platform combines **Resume Analysis**, **Live AI Interviewing**, **Speech-to-Text Processing** to simulate a real interview experience and generate comprehensive performance reports.
 
 ---
 
@@ -36,7 +36,7 @@ The platform combines **Resume Analysis**, **Live AI Interviewing**, **Speech-to
 ### 🎤 Live AI Interview
 
 - Real-time AI interviewer
-- Technical and HR interview questions
+- HR interview questions
 - Dynamic follow-up questions
 - Speech-to-Text conversation
 - AI-generated responses using Groq API
