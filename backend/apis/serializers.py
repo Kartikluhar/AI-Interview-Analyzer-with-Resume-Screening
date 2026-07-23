@@ -86,11 +86,12 @@ class ResumeAnalysisSerializer(serializers.ModelSerializer):
     resume_title = serializers.CharField(source='resume.title', read_only=True)
     class Meta:
         model = ResumeAnalysis
-        fields = ['id', 'resume', 'resume_title','ats_score', 'resume_score', 'skills_found', 'missing_skills', 'strengths', 'weaknesses','job_role' ,'analysis_date']
+        fields = ['id', 'user','resume', 'resume_title','ats_score', 'resume_score', 'skills_found', 'missing_skills', 'strengths', 'weaknesses','job_role' ,'analysis_date']
         read_only_fields = [
             'resume',
             'job_role',
-            'analysis_date'
+            'analysis_date',
+            'user'
         ]
 
 # * Interview Question

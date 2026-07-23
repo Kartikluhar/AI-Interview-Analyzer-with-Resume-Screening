@@ -70,58 +70,90 @@ const StartInterview = () => {
     }
   };
 
-  const startInterview = async () => {
-    if (!selectedResume) {
-      return toast.error("Please select a resume");
+const startInterview = async () => {
+  if (!selectedResume) {
+    return toast.error("Please select a resume");
+  }
+
+  if (!jobRole.trim()) {
+    return toast.error("Please enter a job role");
+  }
+
+  // 1. Separate try/catch for Camera & Microphone check
+  try {
+    // Check if browser supports media devices (fails on HTTP instead of HTTPS)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return toast.error(
+        "Browser does not support media access. Make sure you are using HTTPS or localhost.",
+      );
     }
 
-    if (!jobRole.trim()) {
-      return toast.error("Please enter a job role");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+
+    // Stop tracks immediately to free up the hardware
+    stream.getTracks().forEach((track) => track.stop());
+  } catch (error) {
+    console.error("Media Access Error:", error);
+
+    if (
+      error.name === "NotAllowedError" ||
+      error.name === "PermissionDeniedError"
+    ) {
+      return toast.error(
+        "Permission denied. Please click the lock icon in your URL bar and allow camera/mic access.",
+      );
+    } else if (
+      error.name === "NotFoundError" ||
+      error.name === "DevicesNotFoundError"
+    ) {
+      return toast.error("No camera or microphone found on this device.");
+    } else if (
+      error.name === "NotReadableError" ||
+      error.name === "TrackStartError"
+    ) {
+      return toast.error(
+        "Camera or microphone is already in use by another app (like Zoom).",
+      );
+    } else {
+      return toast.error(
+        "Could not access camera/microphone: " + error.message,
+      );
     }
+  }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      stream.getTracks().forEach((track) => track.stop());
+  // 2. Separate try/catch for the API call
+  try {
+    setLoading(true);
 
-      setLoading(true);
+    toast.loading("Generating AI Interview Questions...", {
+      id: "startInterview",
+    });
 
-      toast.loading("Generating AI Interview Questions...", {
-        id: "startInterview",
-      });
+    const response = await API.post("/interviews/start/", {
+      resume: selectedResume,
+      job_role: jobRole,
+    });
 
-      const response = await API.post("/interviews/start/", {
-        resume: selectedResume,
-        job_role: jobRole,
-      });
+    toast.success("Interview Started Successfully", {
+      id: "startInterview",
+    });
 
-      toast.success("Interview Started Successfully", {
-        id: "startInterview",
-      });
+    const interviewId = response.data.data.id;
 
-      const interviewId = response.data.data.id;
+    navigate(`/interview/${interviewId}`);
+  } catch (error) {
+    console.error("API Error:", error);
 
-      navigate(`/interview/${interviewId}`);
-    } catch (error) {
-      if (error.name === "NotAllowedError") {
-        toast.error("Please allow access to your camera and microphone");
-        
-      } else {
-        console.error(error);
-
-        toast.error(
-          error?.response?.data?.error || "Failed to start interview",
-          {
-            id: "startInterview",
-          },
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.error(error?.response?.data?.error || "Failed to start interview", {
+      id: "startInterview",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex justify-center items-center py-6 px-4">

@@ -149,7 +149,7 @@ def get_resume_analysis(request, role, pk):
             pprint(analysis)
             serializer = ResumeAnalysisSerializer(data=analysis)
             if serializer.is_valid():
-                serializer.save(resume=resume, job_role=role)
+                serializer.save(resume=resume, job_role=role, user=request.user)
                 return Response({
                     'message': 'Resume analysis fetched successfully',
                     'data': serializer.data
@@ -173,7 +173,8 @@ def get_resume_analysis(request, role, pk):
 @permission_classes([IsAuthenticated])
 def get_all_resume_analysis(request):
     try:
-        resume_analysis = ResumeAnalysis.objects.all()
+
+        resume_analysis = ResumeAnalysis.objects.filter(user=request.user)
         serializer = ResumeAnalysisSerializer(resume_analysis, many=True)
         return Response({
             'message': 'Resume analysis fetched successfully',

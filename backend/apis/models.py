@@ -13,6 +13,7 @@ class Resume(models.Model):
         return self.title
 
 class ResumeAnalysis(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE)
     job_role = models.CharField(max_length=255)
     ats_score = models.FloatField()

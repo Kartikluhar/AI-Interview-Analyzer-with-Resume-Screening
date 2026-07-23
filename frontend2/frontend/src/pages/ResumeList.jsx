@@ -81,7 +81,7 @@ const ResumeList = () => {
         </div>
 
         <Link
-          to="/resumes/analyzer" // Update to your actual analyzer route path
+          to="/resume-analyzer" // Update to your actual analyzer route path
           className="flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-white bg-gradient-to-r from-accent to-accent-hover shadow-lg shadow-accent/20 hover:shadow-accent/35 transition-all duration-200 text-sm"
         >
           <FiPlus size={16} />

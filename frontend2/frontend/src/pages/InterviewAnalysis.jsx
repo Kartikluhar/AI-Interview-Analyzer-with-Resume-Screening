@@ -2,7 +2,7 @@ import API from "../services/api";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro"
 import jsPDF from "jspdf";
 import {
   FiDownload,
