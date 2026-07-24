@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class Resume(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='media/')
+    file = models.FileField(upload_to='resumes/')
     text = models.TextField()
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

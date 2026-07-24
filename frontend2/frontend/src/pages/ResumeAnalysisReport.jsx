@@ -13,6 +13,7 @@ import {
   FiArrowLeft,
   FiFileText,
   FiBriefcase,
+  FiVideo, // Added Video Icon
 } from "react-icons/fi";
 
 const ResumeAnalysisReport = () => {
@@ -43,36 +44,32 @@ const ResumeAnalysisReport = () => {
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
-
-    const toastId = toast.loading("Generating your PDF report...");
+    const toastId = toast.loading("Generating PDF Report...");
 
     try {
-      const element = reportRef.current;
-
-      const canvas = await html2canvas(element, {
+      const input = reportRef.current;
+      const canvas = await html2canvas(input, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#0f172a",
+        backgroundColor: "#0f172a", // Set to your app's background color (prevents transparent/black bugs)
         logging: false,
       });
 
-      const image = canvas.toDataURL("image/png", 1.0);
+      const imgData = canvas.toDataURL("image/png", 1.0);
 
-      // FIX 1: Calculate exact dimensions needed to prevent cutoffs
-      const pdfWidth = 210; // A4 standard width in mm
+      // Calculate exact dimensions to prevent stretching or cutoffs
+      const pdfWidth = 210; // Standard A4 width in mm
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Create PDF with dynamic height instead of strict 'a4'
+      // Create PDF with dynamic height
       const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
 
-      pdf.addImage(image, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      const roleName = analysis?.job_role || "Target-Role";
-      pdf.save(`${roleName}-resume-analysis.pdf`);
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Interview_Report_${report.interview_id}.pdf`);
 
       toast.success("PDF Downloaded successfully!", { id: toastId });
-    } catch (error) {
-      console.error("Error generating PDF:", error);
+    } catch (err) {
+      console.error("PDF Error:", err);
       toast.error("Failed to generate PDF.", { id: toastId });
     }
   };
@@ -172,13 +169,11 @@ const ResumeAnalysisReport = () => {
           ref={reportRef}
           className="glass-card rounded-[24px] p-6 md:p-10 space-y-8 bg-secondary-bg/85 relative overflow-hidden"
         >
-          {/* FIX 2: Added data-html2canvas-ignore="true" to prevent the blur effect from rendering badly in PDF */}
           <div
             data-html2canvas-ignore="true"
             className="absolute right-0 top-0 w-80 h-80 bg-accent/5 blur-3xl rounded-full pointer-events-none"
           />
 
-          {/* UPDATED HEADER: Now includes Resume Title and Job Role side-by-side */}
           <div className="text-center space-y-5 z-10 relative">
             <div className="p-4 bg-accent/10 border border-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-accent shadow-md">
               <FiCpu size={32} />
@@ -188,7 +183,6 @@ const ResumeAnalysisReport = () => {
               AI Resume Evaluation Report
             </h2>
 
-            {/* Resume Title & Job Role Badges */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
                 <FiFileText className="text-secondary-text" size={18} />
@@ -212,7 +206,6 @@ const ResumeAnalysisReport = () => {
             </div>
           </div>
 
-          {/* Circular Scores */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             <CircularScore
               score={analysis.ats_score}
@@ -228,7 +221,27 @@ const ResumeAnalysisReport = () => {
             />
           </div>
 
-          {/* Skills Tag Clouds */}
+          {/* NEW VIDEO SECTION: Displays only if backend returns a video_url */}
+          {analysis.video_url && (
+            <div className="bg-white/5 border border-border-custom p-6 rounded-[24px] space-y-4 flex flex-col items-center">
+              <h3 className="text-accent font-bold text-base flex items-center gap-2">
+                <FiVideo size={18} />
+                <span>Attached Video Resume</span>
+              </h3>
+              <div className="bg-black border border-border-custom rounded-2xl overflow-hidden w-full max-w-2xl">
+                <video
+                  controls
+                  className="w-full h-auto max-h-[400px]"
+                  preload="metadata"
+                >
+                  <source src={analysis.video_url} type="video/mp4" />
+                  <source src={analysis.video_url} type="video/webm" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white/5 border border-border-custom p-6 rounded-[24px] space-y-4">
               <h3 className="text-success font-bold text-base flex items-center gap-2">
@@ -269,7 +282,6 @@ const ResumeAnalysisReport = () => {
             </div>
           </div>
 
-          {/* Strengths & Weaknesses Detailed List */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white/5 border border-border-custom p-6 rounded-[24px] space-y-4">
               <h3 className="text-success font-bold text-base flex items-center gap-2">

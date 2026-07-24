@@ -59,12 +59,21 @@ const InterviewAnalysis = () => {
     const input = reportRef.current;
     const canvas = await html2canvas(input, {
       scale: 2,
+      backgroundColor: "#111827",
+      useCORS: true,
     });
+
     const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+    // Create a PDF with a custom size matching the exact canvas dimensions
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? "landscape" : "portrait",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+
+    // Add the image filling the exact dimensions of the custom PDF page
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
     pdf.save(`Interview_Report_${report.interview_id}.pdf`);
   };
 
@@ -191,45 +200,92 @@ const InterviewAnalysis = () => {
       </div>
 
       {/* Main Report Wrapper */}
-      <div ref={reportRef} className="space-y-8 bg-secondary-bg/50 border border-border-custom rounded-[24px] p-6 md:p-8 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-accent/5 blur-3xl rounded-full pointer-events-none" />
+      <div
+        ref={reportRef}
+        className="space-y-8 bg-secondary-bg/50 border border-border-custom rounded-[24px] p-6 md:p-8 relative overflow-hidden"
+      >
+        <div
+          data-html2canvas-ignore="true"
+          className="absolute right-0 top-0 w-80 h-80 bg-accent/5 blur-3xl rounded-full pointer-events-none"
+        />
 
         {/* Top Header Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white/5 border border-border-custom p-6 rounded-2xl">
-            <span className="text-xs font-semibold text-secondary-text uppercase tracking-wider block">Job Role</span>
-            <span className="text-xl font-bold text-white block mt-2">{report.job_role}</span>
+            <span className="text-xs font-semibold text-secondary-text uppercase tracking-wider block">
+              Job Role
+            </span>
+            <span className="text-xl font-bold text-white block mt-2">
+              {report.job_role}
+            </span>
           </div>
 
           <div className="bg-white/5 border border-border-custom p-6 rounded-2xl">
-            <span className="text-xs font-semibold text-secondary-text uppercase tracking-wider block">Mock Status</span>
+            <span className="text-xs font-semibold text-secondary-text uppercase tracking-wider block">
+              Mock Status
+            </span>
             <div className="flex items-center gap-2 mt-2">
               <span className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
-              <span className="text-xl font-bold text-white capitalize">{report.status}</span>
+              <span className="text-xl font-bold text-white capitalize">
+                {report.status}
+              </span>
             </div>
           </div>
 
           <div className="bg-white/5 border border-border-custom p-6 rounded-2xl bg-gradient-to-tr from-accent/10 to-accent-hover/10">
-            <span className="text-xs font-semibold text-accent uppercase tracking-wider block">Overall Rating</span>
-            <span className="text-3xl font-extrabold text-white block mt-1.5">{report.total_score}%</span>
+            <span className="text-xs font-semibold text-accent uppercase tracking-wider block">
+              Overall Rating
+            </span>
+            <span className="text-3xl font-extrabold text-white block mt-1.5">
+              {report.total_score}%
+            </span>
           </div>
         </div>
 
         {/* Overall Score Circle Progress */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-4">
-          <CircularScore score={report.total_score} label="Overall Score" color="#4F46E5" shadowColor="rgba(79, 70, 229, 0.4)" />
-          <CircularScore score={avgTechnical} label="Technical Score" color="#10B981" shadowColor="rgba(16, 185, 129, 0.4)" />
-          <CircularScore score={Math.round(avgTechnical * 0.95)} label="Communication" color="#6366F1" shadowColor="rgba(99, 102, 241, 0.4)" />
-          <CircularScore score={avgConfidence} label="Confidence Meter" color="#F59E0B" shadowColor="rgba(245, 158, 11, 0.4)" />
-          <CircularScore score={avgEyeContact} label="Gaze Contact" color="#06B6D4" shadowColor="rgba(6, 182, 212, 0.4)" />
-          
+          <CircularScore
+            score={report.total_score}
+            label="Overall Score"
+            color="#4F46E5"
+            shadowColor="rgba(79, 70, 229, 0.4)"
+          />
+          <CircularScore
+            score={avgTechnical}
+            label="Technical Score"
+            color="#10B981"
+            shadowColor="rgba(16, 185, 129, 0.4)"
+          />
+          <CircularScore
+            score={Math.round(avgTechnical * 0.95)}
+            label="Communication"
+            color="#6366F1"
+            shadowColor="rgba(99, 102, 241, 0.4)"
+          />
+          <CircularScore
+            score={avgConfidence}
+            label="Confidence Meter"
+            color="#F59E0B"
+            shadowColor="rgba(245, 158, 11, 0.4)"
+          />
+          <CircularScore
+            score={avgEyeContact}
+            label="Gaze Contact"
+            color="#06B6D4"
+            shadowColor="rgba(6, 182, 212, 0.4)"
+          />
+
           {/* Emotion Card */}
           <div className="flex flex-col items-center justify-center p-4 bg-white/5 border border-border-custom rounded-2xl">
             <div className="w-24 h-24 rounded-full bg-white/5 border border-border-custom flex items-center justify-center text-3xl text-warning">
               <FiSmile className="text-accent" size={36} />
             </div>
-            <span className="text-xs font-bold text-white uppercase mt-3 tracking-wide">{dominantEmotion}</span>
-            <span className="text-[10px] font-semibold text-secondary-text mt-1">Dominant Tone</span>
+            <span className="text-xs font-bold text-white uppercase mt-3 tracking-wide">
+              {dominantEmotion}
+            </span>
+            <span className="text-[10px] font-semibold text-secondary-text mt-1">
+              Dominant Tone
+            </span>
           </div>
         </div>
 
@@ -237,23 +293,61 @@ const InterviewAnalysis = () => {
         {chartData.length > 0 && (
           <div className="bg-white/5 border border-border-custom p-6 rounded-[24px] space-y-4">
             <div>
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Score Distribution</h2>
-              <p className="text-xs text-secondary-text">Technical evaluation scores per question answered</p>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                Score Distribution
+              </h2>
+              <p className="text-xs text-secondary-text">
+                Technical evaluation scores per question answered
+              </p>
             </div>
             <div className="h-56 w-full pt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0.0}/>
+                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4} />
+                      <stop
+                        offset="95%"
+                        stopColor="#4F46E5"
+                        stopOpacity={0.0}
+                      />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" />
-                  <XAxis dataKey="name" stroke="#94A3B8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94A3B8" fontSize={11} domain={[0, 100]} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#111827', borderColor: 'rgba(255, 255, 255, 0.08)', borderRadius: '12px', color: '#fff' }} />
-                  <Area type="monotone" dataKey="Score" stroke="#4F46E5" strokeWidth={2.5} fillOpacity={1} fill="url(#chartGrad)" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255, 255, 255, 0.03)"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#94A3B8"
+                    fontSize={11}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    stroke="#94A3B8"
+                    fontSize={11}
+                    domain={[0, 100]}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#111827",
+                      borderColor: "rgba(255, 255, 255, 0.08)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="Score"
+                    stroke="#4F46E5"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#chartGrad)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -261,13 +355,19 @@ const InterviewAnalysis = () => {
         )}
 
         {/* Questions Loop */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-secondary-text">Detailed Answer Feedback</h3>
-          
+        <div data-html2canvas-ignore="true" className="space-y-4 pt-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-secondary-text">
+            Detailed Answer Feedback
+          </h3>
+
           <div className="space-y-4">
             {report.results.map((item, index) => {
               const isExpanded = !!expandedIndex[index];
-              const details = getFeedbackAndSuggestions(item.answer_score, item.emotion, item.eye_contact);
+              const details = getFeedbackAndSuggestions(
+                item.answer_score,
+                item.emotion,
+                item.eye_contact,
+              );
 
               return (
                 <div
@@ -280,12 +380,20 @@ const InterviewAnalysis = () => {
                     className="flex justify-between items-center p-6 cursor-pointer hover:bg-white/5 transition-all duration-200"
                   >
                     <div className="space-y-1">
-                      <h4 className="text-sm font-bold text-accent">QUESTION {index + 1}</h4>
-                      <p className="text-white font-medium text-sm leading-relaxed max-w-2xl pr-4">{item.question}</p>
+                      <h4 className="text-sm font-bold text-accent">
+                        QUESTION {index + 1}
+                      </h4>
+                      <p className="text-white font-medium text-sm leading-relaxed max-w-2xl pr-4">
+                        {item.question}
+                      </p>
                     </div>
-                    
+
                     <button className="p-2 bg-white/5 border border-border-custom rounded-xl text-secondary-text hover:text-white transition">
-                      {isExpanded ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
+                      {isExpanded ? (
+                        <FiChevronUp size={18} />
+                      ) : (
+                        <FiChevronDown size={18} />
+                      )}
                     </button>
                   </div>
 
@@ -299,27 +407,49 @@ const InterviewAnalysis = () => {
                           <span>Your Answer Transcription</span>
                         </span>
                         <p className="p-4 bg-white/5 border border-border-custom rounded-2xl text-sm leading-relaxed text-white">
-                          {item.answer ? item.answer : <span className="italic text-secondary-text">No voice recorded for this question.</span>}
+                          {item.answer ? (
+                            item.answer
+                          ) : (
+                            <span className="italic text-secondary-text">
+                              No voice recorded for this question.
+                            </span>
+                          )}
                         </p>
                       </div>
 
                       {/* Question Core Metrics */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
-                          <span className="text-xs font-semibold text-secondary-text">Answer Score</span>
-                          <span className="text-lg font-bold text-white mt-2">{item.answer_score}%</span>
+                          <span className="text-xs font-semibold text-secondary-text">
+                            Answer Score
+                          </span>
+                          <span className="text-lg font-bold text-white mt-2">
+                            {item.answer_score}%
+                          </span>
                         </div>
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
-                          <span className="text-xs font-semibold text-secondary-text">Expression Tone</span>
-                          <span className="text-lg font-bold text-white capitalize mt-2">{item.emotion}</span>
+                          <span className="text-xs font-semibold text-secondary-text">
+                            Expression Tone
+                          </span>
+                          <span className="text-lg font-bold text-white capitalize mt-2">
+                            {item.emotion}
+                          </span>
                         </div>
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
-                          <span className="text-xs font-semibold text-secondary-text">Confidence Value</span>
-                          <span className="text-lg font-bold text-white mt-2">{item.confidence}%</span>
+                          <span className="text-xs font-semibold text-secondary-text">
+                            Confidence Value
+                          </span>
+                          <span className="text-lg font-bold text-white mt-2">
+                            {item.confidence}%
+                          </span>
                         </div>
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
-                          <span className="text-xs font-semibold text-secondary-text">Eye Contact Rating</span>
-                          <span className="text-lg font-bold text-white mt-2">{item.eye_contact}%</span>
+                          <span className="text-xs font-semibold text-secondary-text">
+                            Eye Contact Rating
+                          </span>
+                          <span className="text-lg font-bold text-white mt-2">
+                            {item.eye_contact}%
+                          </span>
                         </div>
                       </div>
 
@@ -348,7 +478,10 @@ const InterviewAnalysis = () => {
                                 ))}
                               </ul>
                             ) : (
-                              <span>No developmental issues identified. Excellent job!</span>
+                              <span>
+                                No developmental issues identified. Excellent
+                                job!
+                              </span>
                             )}
                           </div>
                         </div>

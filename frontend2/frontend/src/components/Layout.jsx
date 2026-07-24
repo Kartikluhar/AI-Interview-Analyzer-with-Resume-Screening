@@ -66,15 +66,27 @@ function Layout() {
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
     { name: "Resume", path: "/resumes", icon: FileText },
     { name: "Resume Analysis", path: "/resume-analyzer", icon: Search },
+    { name: "Resume Analysis List", path: "/resumes/analysis", icon: History },
     { name: "Interview", path: "/start-interview", icon: Play },
     { name: "Interview Report", path: "/interviews", icon: History },
-    { name: "Resume Analysis List", path: "/resumes/analysis", icon: History },
   ];
 
   const isActive = (path) => {
+    // Exact match for Dashboard
     if (path === "/") {
       return location.pathname === "/";
     }
+
+    // Special case: Prevent "/resumes" from lighting up when on "/resumes/analysis"
+    if (path === "/resumes") {
+      return (
+        location.pathname === "/resumes" ||
+        (location.pathname.startsWith("/resumes/") &&
+          !location.pathname.startsWith("/resumes/analysis"))
+      );
+    }
+
+    // Default behavior for everything else
     return location.pathname.startsWith(path);
   };
 
@@ -162,7 +174,7 @@ function Layout() {
           >
             {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          
+
           <Link to="/" className="flex items-center gap-2 group">
             <div className="p-2 rounded-xl bg-accent/10 border border-accent/20 group-hover:border-accent/50 transition">
               <Brain className="text-accent" size={24} />
@@ -188,10 +200,12 @@ function Layout() {
           {/* User Profile */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex flex-col text-right">
-              <span className="text-sm font-semibold text-white">{username}</span>
+              <span className="text-sm font-semibold text-white">
+                {username}
+              </span>
               <span className="text-xs text-secondary-text">Pro Candidate</span>
             </div>
-            
+
             <div className="relative group cursor-pointer">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-accent to-accent-hover flex items-center justify-center text-white font-bold border border-white/10 shadow-md">
                 {username.charAt(0).toUpperCase()}
@@ -249,13 +263,23 @@ function Layout() {
                 <span>Copyright © {new Date().getFullYear()}</span>
               </div>
               <div className="flex gap-4">
-                <a href="#" className="hover:text-white transition">Privacy</a>
-                <a href="#" className="hover:text-white transition">Terms</a>
-                <a href="#" className="hover:text-white transition flex items-center gap-1">
+                <a href="#" className="hover:text-white transition">
+                  Privacy
+                </a>
+                <a href="#" className="hover:text-white transition">
+                  Terms
+                </a>
+                <a
+                  href="https://github.com/Kartikluhar/AI-Interview-Analyzer-with-Resume-Screening"
+                  className="hover:text-white transition flex items-center gap-1"
+                >
                   <FaGithub size={14} />
                   <span>GitHub</span>
                 </a>
-                <a href="#" className="hover:text-white transition flex items-center gap-1">
+                <a
+                  href="#"
+                  className="hover:text-white transition flex items-center gap-1"
+                >
                   <FaLinkedin size={14} />
                   <span>LinkedIn</span>
                 </a>

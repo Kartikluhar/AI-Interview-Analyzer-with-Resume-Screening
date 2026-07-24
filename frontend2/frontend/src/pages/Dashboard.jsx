@@ -34,6 +34,7 @@ import {
 function Dashboard() {
   const navigate = useNavigate();
   const [resumes, setResumes] = useState([]);
+  const [analysis, setAnalysis] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("Candidate");
@@ -47,12 +48,14 @@ function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [resumesRes, interviewsRes] = await Promise.all([
+        const [resumesRes, interviewsRes, analysisRes ] = await Promise.all([
           API.get("/resumes/"),
-          API.get("/interviews/")
+          API.get("/interviews/"),
+          API.get('/resumes/analysis/'),
         ]);
         setResumes(resumesRes.data.data || []);
         setInterviews(interviewsRes.data.data || []);
+        setAnalysis(analysisRes.data.data || []);
       } catch (error) {
         console.error("Dashboard data fetch error:", error);
         toast.error("Failed to load dashboard data");
@@ -179,7 +182,7 @@ function Dashboard() {
           </div>
 
           <div className="mt-4">
-            <h2 className="text-4xl font-extrabold text-white">{resumes.length}</h2>
+            <h2 className="text-4xl font-extrabold text-white">{analysis.length}</h2>
             <p className="text-xs text-secondary-text mt-1.5 flex items-center gap-1 group-hover:text-white transition">
               <span>Generate or view report</span>
               <ChevronRight size={14} />

@@ -515,6 +515,13 @@ def interview_analysis(request, pk):
         answer_score = answer.answer_score if answer else 0
         answer_text = answer.answer_text if answer else ""
 
+        # --- NEW CODE: Extract Video URL ---
+        video_url = None
+        if answer and answer.video_file:
+            # build_absolute_uri creates a full URL (e.g., http://yourdomain.com/media/file.mp4)
+            video_url = request.build_absolute_uri(answer.video_file.url)
+        # -----------------------------------
+
         detected_emotion = (
             emotion.emotion if emotion else "Unknown"
         )
@@ -528,7 +535,7 @@ def interview_analysis(request, pk):
         )
 
         face_presence = float(
-            emotion.face_presentions if emotion else 0
+            emotion.face_presence if emotion else 0
         )
 
         if answer:
@@ -546,6 +553,7 @@ def interview_analysis(request, pk):
                 "question": question.question_text,
                 "keywords": question.keywords,
                 "answer": answer_text,
+                "video_url": video_url,  # --- Added video_url to the response payload ---
                 "answer_score": answer_score,
                 "emotion": detected_emotion,
                 "confidence": round(confidence, 2),

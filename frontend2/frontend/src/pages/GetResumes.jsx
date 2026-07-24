@@ -58,7 +58,10 @@ const GetResumes = () => {
         <div className="flex items-center gap-3 w-full md:w-auto">
           {/* Search Box */}
           <div className="relative flex-1 md:w-80">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text" size={18} />
+            <FiSearch
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search resume title..."
@@ -73,7 +76,10 @@ const GetResumes = () => {
             className="flex items-center justify-center p-3.5 rounded-2xl bg-white/5 border border-border-custom hover:bg-white/10 hover:text-white text-secondary-text transition-all duration-200 cursor-pointer"
             title="Refresh list"
           >
-            <FiRefreshCw className={`${loading ? "animate-spin" : ""}`} size={18} />
+            <FiRefreshCw
+              className={`${loading ? "animate-spin" : ""}`}
+              size={18}
+            />
           </button>
         </div>
       </div>
@@ -82,7 +88,9 @@ const GetResumes = () => {
       {loading ? (
         <div className="min-h-[40vh] flex flex-col justify-center items-center gap-4">
           <div className="w-12 h-12 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-          <p className="text-secondary-text text-sm font-medium">Loading Resumes...</p>
+          <p className="text-secondary-text text-sm font-medium">
+            Loading Resumes...
+          </p>
         </div>
       ) : filteredResumes.length === 0 ? (
         <div className="glass-card rounded-[24px] p-12 text-center border-dashed border-2 border-accent/20">
@@ -97,7 +105,7 @@ const GetResumes = () => {
           </p>
           {!search && (
             <button
-              onClick={() => window.location.href = "/upload-resume"}
+              onClick={() => (window.location.href = "/upload-resume")}
               className="mt-6 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-2xl font-semibold shadow-lg shadow-accent/20 transition-all cursor-pointer"
             >
               Upload Now
@@ -119,10 +127,15 @@ const GetResumes = () => {
                       <FiFileText size={20} />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-white truncate max-w-[150px] md:max-w-[170px]" title={resume.title}>
+                      <h2
+                        className="text-base font-bold text-white truncate max-w-[150px] md:max-w-[170px]"
+                        title={resume.title}
+                      >
                         {resume.title}
                       </h2>
-                      <span className="text-xs font-semibold text-secondary-text">PDF / Document</span>
+                      <span className="text-xs font-semibold text-secondary-text">
+                        PDF / Document
+                      </span>
                     </div>
                   </div>
 
@@ -156,9 +169,11 @@ const GetResumes = () => {
                   </label>
                   <div className="bg-primary-bg/50 border border-border-custom rounded-2xl p-4 text-xs font-medium text-secondary-text max-h-40 overflow-y-auto leading-relaxed scrollbar-thin">
                     {resume.text ? (
-                      resume.text.length > 300
-                        ? resume.text.substring(0, 300) + "..."
-                        : resume.text
+                      resume.text.length > 300 ? (
+                        resume.text.substring(0, 300) + "..."
+                      ) : (
+                        resume.text
+                      )
                     ) : (
                       <span className="italic">No text content parsed.</span>
                     )}
@@ -167,9 +182,14 @@ const GetResumes = () => {
               </div>
 
               {/* View Document Action */}
+              {/* View Document Action */}
               <div className="mt-6 pt-4 border-t border-border-custom">
                 <a
-                  href={resume.file}
+                  href={
+                    resume.file.startsWith("http")
+                      ? resume.file
+                      : `http://localhost:8000${resume.file}` // <-- Replace with your actual Django backend URL
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-white/5 hover:bg-accent border border-border-custom hover:border-accent text-white font-semibold transition-all duration-200 text-sm cursor-pointer"

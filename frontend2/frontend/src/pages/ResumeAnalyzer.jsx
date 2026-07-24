@@ -266,7 +266,7 @@ const ResumeAnalyzer = () => {
       {/* REPORT */}
       {analysis && (
         <div className="space-y-6">
-          <div className="flex justify-end">
+          {/* <div className="flex justify-end">
             <button
               onClick={downloadPDF}
               className="flex items-center gap-2 bg-[#10B981] hover:bg-[#10B981]/90 text-white px-6 py-3.5 rounded-2xl font-semibold shadow-lg shadow-success/20 transition-all cursor-pointer text-sm"
@@ -274,7 +274,7 @@ const ResumeAnalyzer = () => {
               <FiDownload size={16} />
               <span>Download PDF Report</span>
             </button>
-          </div>
+          </div> */}
 
           <div
             ref={reportRef}

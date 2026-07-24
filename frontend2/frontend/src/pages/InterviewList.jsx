@@ -97,14 +97,19 @@ const InterviewList = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">My Interviews</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+            My Interviews
+          </h1>
           <p className="text-secondary-text mt-1.5 font-medium">
             View and manage your AI mock interviews.
           </p>
         </div>
 
         <div className="relative w-full md:w-80">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text" size={16} />
+          <FaSearch
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Search by Job Role..."
@@ -122,12 +127,18 @@ const InterviewList = () => {
           <p className="text-secondary-text mt-2 font-medium max-w-sm mx-auto text-sm">
             Start your first AI mock interview session to practice your skills.
           </p>
-          <button
+          {/* <button
             onClick={() => window.location.href = "/start-interview"}
             className="mt-6 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-2xl font-semibold shadow-lg shadow-accent/20 transition-all cursor-pointer text-sm"
           >
             Start Practice Now
-          </button>
+          </button> */}
+          <Link
+            to="/start-interview"
+            className="inline-block mt-6 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-2xl font-semibold shadow-lg shadow-accent/20 transition-all cursor-pointer text-sm"
+          >
+            Start Practice Now
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -149,7 +160,7 @@ const InterviewList = () => {
                         {new Date(item.started_at).toLocaleDateString([], {
                           year: "numeric",
                           month: "short",
-                          day: "numeric"
+                          day: "numeric",
                         })}
                       </span>
                     </div>
@@ -182,7 +193,7 @@ const InterviewList = () => {
                       <span>Continue Mock Session</span>
                     </Link>
                   )}
-                  
+
                   <button
                     onClick={() => handleDelete(item.id)}
                     className="p-3 rounded-2xl bg-white/5 border border-border-custom hover:bg-danger/10 text-secondary-text hover:text-danger hover:border-danger/25 transition-all duration-200 cursor-pointer"
