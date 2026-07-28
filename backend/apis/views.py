@@ -400,7 +400,7 @@ def submit_answer(request):
         video_file = request.data.get('video_file')
         
         question = InterviewQuestion.objects.get(pk=question_id)
-        score = utils.get_score(answer, question.keywords)
+        score = utils.get_score(answer, question.keywords, question.question_text)
 
         # * save emotion
         EmotionAnalysis.objects.create(
@@ -503,7 +503,6 @@ def interview_analysis(request, pk):
     emotions = []
 
     for question in questions:
-
         answer = InterviewAnswer.objects.filter(
             interview_question=question
         ).first()
@@ -512,35 +511,27 @@ def interview_analysis(request, pk):
             interview_question=question
         ).first()
 
-        answer_score = answer.answer_score if answer else 0
+        # Get raw score (1-10) and convert to percentage (10-100)
+        answer_score_raw = answer.answer_score if answer else 0
+        answer_score = (answer_score_raw *
+                        10) if answer_score_raw <= 10 else answer_score_raw
+
         answer_text = answer.answer_text if answer else ""
 
         # --- NEW CODE: Extract Video URL ---
         video_url = None
         if answer and answer.video_file:
-            # build_absolute_uri creates a full URL (e.g., http://yourdomain.com/media/file.mp4)
             video_url = request.build_absolute_uri(answer.video_file.url)
         # -----------------------------------
 
-        detected_emotion = (
-            emotion.emotion if emotion else "Unknown"
-        )
-
-        confidence = float(
-            emotion.confidence if emotion else 0
-        )
-
-        eye_contact = float(
-            emotion.eye_contact if emotion else 0
-        )
-
-        face_presence = float(
-            emotion.face_presence if emotion else 0
-        )
+        detected_emotion = emotion.emotion if emotion else "Unknown"
+        confidence = float(emotion.confidence if emotion else 0)
+        eye_contact = float(emotion.eye_contact if emotion else 0)
+        face_presence = float(emotion.face_presence if emotion else 0)
 
         if answer:
             answered_questions += 1
-            total_score += answer_score
+            total_score += answer_score  # Now adding the scaled 100-based score
 
         confidence_sum += confidence
         eye_contact_sum += eye_contact
@@ -553,8 +544,8 @@ def interview_analysis(request, pk):
                 "question": question.question_text,
                 "keywords": question.keywords,
                 "answer": answer_text,
-                "video_url": video_url,  # --- Added video_url to the response payload ---
-                "answer_score": answer_score,
+                "video_url": video_url,
+                "answer_score": answer_score,  # Sending the scaled percentage to the frontend
                 "emotion": detected_emotion,
                 "confidence": round(confidence, 2),
                 "eye_contact": round(eye_contact, 2),
@@ -563,6 +554,7 @@ def interview_analysis(request, pk):
         )
 
     total_questions = questions.count()
+    print(total_questions)
 
     if total_questions > 0:
         average_score = round(total_score / total_questions, 2)

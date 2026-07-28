@@ -4,15 +4,7 @@ import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import * as faceapi from "face-api.js";
-import {
-  FiPlay,
-  FiVolume2,
-  FiMic,
-  FiCpu,
-  FiVideo,
-  FiActivity,
-  FiCircle,
-} from "react-icons/fi";
+import { FiVolume2, FiMic, FiCpu, FiVideo, FiActivity } from "react-icons/fi";
 
 const InterviewRoom = () => {
   const { interview_id } = useParams();
@@ -363,7 +355,7 @@ const InterviewRoom = () => {
     }
   }, [webcamRef]);
 
-  // UI Render (Unchanged)
+  // UI Render
   return (
     <div className="space-y-8">
       {/* Header and Loading */}
@@ -500,9 +492,18 @@ const InterviewRoom = () => {
               )}
             </div>
 
-            <div className="text-[10px] text-secondary-text text-center font-semibold leading-relaxed">
-              Tip: AI waits for 5 seconds of silence before automatically saving
-              your answer.
+            {/* UPDATED TIPS SECTION */}
+            <div className="space-y-2 mt-2">
+              <div className="text-[10px] text-secondary-text text-center font-semibold leading-relaxed">
+                Tip: AI waits for 5 seconds of silence before automatically
+                saving your answer.
+              </div>
+              <div className="text-[10px] text-warning/90 text-center font-semibold leading-relaxed bg-warning/10 py-2 px-3 rounded-xl border border-warning/20">
+                Note: The live transcriber may occasionally misspell technical
+                terms. Don't worry—our AI is trained to understand the context
+                and will automatically correct phonetic errors (like "jango" to
+                "django") during the final evaluation!
+              </div>
             </div>
           </div>
         </div>

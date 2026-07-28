@@ -2,21 +2,18 @@ import API from "../services/api";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import html2canvas from "html2canvas-pro"
+import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import {
   FiDownload,
-  FiTarget,
   FiSmile,
-  FiEye,
-  FiUserCheck,
-  FiTrendingUp,
   FiChevronDown,
   FiChevronUp,
   FiAward,
   FiMessageSquare,
   FiBookOpen,
-  FiActivity
+  FiActivity,
+  FiVideo, // Added FiVideo import here
 } from "react-icons/fi";
 import {
   AreaChart,
@@ -25,8 +22,15 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
+
+// Helper function to safely convert decimals (e.g., 0.85) to percentages (85)
+const formatScore = (val) => {
+  const num = parseFloat(val || 0);
+  // If the value is a decimal between 0 and 1, multiply by 100
+  return num <= 1 && num > 0 ? Math.round(num * 100) : Math.round(num);
+};
 
 const InterviewAnalysis = () => {
   const { interview_id } = useParams();
@@ -65,14 +69,12 @@ const InterviewAnalysis = () => {
 
     const imgData = canvas.toDataURL("image/png");
 
-    // Create a PDF with a custom size matching the exact canvas dimensions
     const pdf = new jsPDF({
       orientation: canvas.width > canvas.height ? "landscape" : "portrait",
       unit: "px",
       format: [canvas.width, canvas.height],
     });
 
-    // Add the image filling the exact dimensions of the custom PDF page
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
     pdf.save(`Interview_Report_${report.interview_id}.pdf`);
   };
@@ -81,41 +83,53 @@ const InterviewAnalysis = () => {
     return (
       <div className="min-h-[60vh] flex flex-col justify-center items-center gap-4">
         <div className="w-12 h-12 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-        <p className="text-secondary-text text-sm font-medium">Computing AI Analytics...</p>
+        <p className="text-secondary-text text-sm font-medium">
+          Computing AI Analytics...
+        </p>
       </div>
     );
   }
 
-  // Calculate local aggregates
   const totalQuestions = report.results?.length || 0;
-  
-  const avgConfidence = totalQuestions > 0 
-    ? Math.round(report.results.reduce((acc, curr) => acc + parseFloat(curr.confidence || 0), 0) / totalQuestions) 
-    : 80;
-    
-  const avgEyeContact = totalQuestions > 0 
-    ? Math.round(report.results.reduce((acc, curr) => acc + parseFloat(curr.eye_contact || 0), 0) / totalQuestions) 
-    : 85;
 
-  const avgTechnical = totalQuestions > 0 
-    ? Math.round(report.results.reduce((acc, curr) => acc + parseFloat(curr.answer_score || 0), 0) / totalQuestions) 
-    : report.total_score;
+  const avgConfidence =
+    totalQuestions > 0
+      ? Math.round(
+          report.results.reduce(
+            (acc, curr) => acc + formatScore(curr.confidence),
+            0,
+          ) / totalQuestions,
+        )
+      : 80;
 
-  // Let's get the dominant emotion
+  const avgEyeContact =
+    totalQuestions > 0
+      ? Math.round(
+          report.results.reduce(
+            (acc, curr) => acc + formatScore(curr.eye_contact),
+            0,
+          ) / totalQuestions,
+        )
+      : 85;
+
   const emotionCounts = {};
-  report.results?.forEach(item => {
+  report.results?.forEach((item) => {
     const e = item.emotion || "neutral";
     emotionCounts[e] = (emotionCounts[e] || 0) + 1;
   });
-  const dominantEmotion = Object.keys(emotionCounts).length > 0
-    ? Object.keys(emotionCounts).reduce((a, b) => emotionCounts[a] > emotionCounts[b] ? a : b)
-    : "neutral";
+  const dominantEmotion =
+    Object.keys(emotionCounts).length > 0
+      ? Object.keys(emotionCounts).reduce((a, b) =>
+          emotionCounts[a] > emotionCounts[b] ? a : b,
+        )
+      : "neutral";
 
-  const chartData = report.results?.map((item, idx) => ({
-    name: `Q${idx + 1}`,
-    Score: item.answer_score || 0,
-    Confidence: item.confidence || 0
-  })) || [];
+  const chartData =
+    report.results?.map((item, idx) => ({
+      name: `Q${idx + 1}`,
+      Score: formatScore(item.answer_score),
+      Confidence: formatScore(item.confidence),
+    })) || [];
 
   const CircularScore = ({ score, label, color, shadowColor }) => {
     const radius = 40;
@@ -127,7 +141,13 @@ const InterviewAnalysis = () => {
       <div className="flex flex-col items-center justify-center p-4 bg-white/5 border border-border-custom rounded-2xl">
         <div className="relative w-24 h-24 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90">
-            <circle cx="48" cy="48" r={radius} className="stroke-white/5 fill-transparent" strokeWidth={strokeWidth} />
+            <circle
+              cx="48"
+              cy="48"
+              r={radius}
+              className="stroke-white/5 fill-transparent"
+              strokeWidth={strokeWidth}
+            />
             <circle
               cx="48"
               cy="48"
@@ -141,36 +161,68 @@ const InterviewAnalysis = () => {
               style={{ filter: `drop-shadow(0 0 4px ${shadowColor})` }}
             />
           </svg>
-          <span className="absolute text-lg font-extrabold text-white">{score}%</span>
+          <span className="absolute text-lg font-extrabold text-white">
+            {score}%
+          </span>
         </div>
-        <span className="text-xs font-semibold text-secondary-text mt-3">{label}</span>
+        <span className="text-xs font-semibold text-secondary-text mt-3">
+          {label}
+        </span>
       </div>
     );
   };
 
-  const getFeedbackAndSuggestions = (score, emotion, eyeContact) => {
+  const getFeedbackAndSuggestions = (item) => {
+    if (item.feedback && item.suggestions?.length > 0) {
+      return { feedback: item.feedback, suggestions: item.suggestions };
+    }
+
+    const score = formatScore(item.answer_score);
+    const emotion = item.emotion || "neutral";
+    const eyeContact = formatScore(item.eye_contact);
+
     let feedback = "";
     let suggestions = [];
 
     if (score >= 80) {
-      feedback = "Excellent articulation of technical details. Your explanation demonstrated a solid grasp of core principles and frameworks.";
-      suggestions.push("Maintain this level of depth in live interviews.");
+      feedback =
+        "Excellent articulation of details. Your explanation demonstrated a solid grasp of the core concepts and principles.";
+      suggestions.push(
+        "Maintain this level of depth and clarity in live interviews.",
+      );
+      suggestions.push(
+        "Consider briefly mentioning edge cases or alternative approaches to further showcase your expertise.",
+      );
     } else if (score >= 60) {
-      feedback = "Your response covers the primary aspects but lacks concrete structural definitions or specific real-world project scenarios.";
-      suggestions.push("Try using the STAR method (Situation, Task, Action, Result) to frame your response.");
-      suggestions.push("Elaborate on database optimization or architectural choices.");
+      feedback =
+        "Your response covers the primary aspects but could benefit from more concrete definitions or real-world examples.";
+      suggestions.push(
+        "Try using the STAR method (Situation, Task, Action, Result) to frame your response when applicable.",
+      );
+      suggestions.push(
+        "Connect your answer to specific examples from your past projects or experiences.",
+      );
     } else {
-      feedback = "The answer is brief and misses core concepts required for this targeted question.";
-      suggestions.push("Study implementation details for standard design patterns.");
-      suggestions.push("Provide examples of API routing or state management tools.");
+      feedback =
+        "The answer is brief and misses some core concepts required to fully address the question.";
+      suggestions.push(
+        "Review the fundamental principles related to this topic.",
+      );
+      suggestions.push(
+        "Take a brief pause to structure your thoughts clearly before answering.",
+      );
     }
 
     if (eyeContact < 70) {
-      suggestions.push("Practice looking straight into the camera lens to project confidence.");
+      suggestions.push(
+        "Practice looking straight into the camera lens to project confidence.",
+      );
     }
 
     if (["angry", "sad", "fearful"].includes(emotion.toLowerCase())) {
-      suggestions.push("Maintain a neutral, pleasant, or smiling expression to create rapport.");
+      suggestions.push(
+        "Maintain a neutral, pleasant, or smiling expression to create rapport.",
+      );
     }
 
     return { feedback, suggestions };
@@ -237,30 +289,18 @@ const InterviewAnalysis = () => {
               Overall Rating
             </span>
             <span className="text-3xl font-extrabold text-white block mt-1.5">
-              {report.total_score}%
+              {formatScore(report.score_percentage)}%
             </span>
           </div>
         </div>
 
         {/* Overall Score Circle Progress */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 pt-4">
           <CircularScore
-            score={report.total_score}
+            score={formatScore(report.score_percentage)}
             label="Overall Score"
             color="#4F46E5"
             shadowColor="rgba(79, 70, 229, 0.4)"
-          />
-          <CircularScore
-            score={avgTechnical}
-            label="Technical Score"
-            color="#10B981"
-            shadowColor="rgba(16, 185, 129, 0.4)"
-          />
-          <CircularScore
-            score={Math.round(avgTechnical * 0.95)}
-            label="Communication"
-            color="#6366F1"
-            shadowColor="rgba(99, 102, 241, 0.4)"
           />
           <CircularScore
             score={avgConfidence}
@@ -363,11 +403,7 @@ const InterviewAnalysis = () => {
           <div className="space-y-4">
             {report.results.map((item, index) => {
               const isExpanded = !!expandedIndex[index];
-              const details = getFeedbackAndSuggestions(
-                item.answer_score,
-                item.emotion,
-                item.eye_contact,
-              );
+              const details = getFeedbackAndSuggestions(item);
 
               return (
                 <div
@@ -417,6 +453,27 @@ const InterviewAnalysis = () => {
                         </p>
                       </div>
 
+                      {/* --- NEW SECTION: Video Recording --- */}
+                      {item.video_url && (
+                        <div className="space-y-2 pt-2">
+                          <span className="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
+                            <FiVideo size={14} />
+                            <span>Video Recording</span>
+                          </span>
+                          <div className="rounded-2xl overflow-hidden border border-border-custom bg-black/40">
+                            <video
+                              src={item.video_url}
+                              controls
+                              className="w-full max-h-[350px] object-contain outline-none"
+                              preload="metadata"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        </div>
+                      )}
+                      {/* ---------------------------------- */}
+
                       {/* Question Core Metrics */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
@@ -424,7 +481,7 @@ const InterviewAnalysis = () => {
                             Answer Score
                           </span>
                           <span className="text-lg font-bold text-white mt-2">
-                            {item.answer_score}%
+                            {formatScore(item.answer_score)}%
                           </span>
                         </div>
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
@@ -440,7 +497,7 @@ const InterviewAnalysis = () => {
                             Confidence Value
                           </span>
                           <span className="text-lg font-bold text-white mt-2">
-                            {item.confidence}%
+                            {formatScore(item.confidence)}%
                           </span>
                         </div>
                         <div className="p-4 bg-white/5 border border-border-custom rounded-2xl flex flex-col justify-between">
@@ -448,7 +505,7 @@ const InterviewAnalysis = () => {
                             Eye Contact Rating
                           </span>
                           <span className="text-lg font-bold text-white mt-2">
-                            {item.eye_contact}%
+                            {formatScore(item.eye_contact)}%
                           </span>
                         </div>
                       </div>

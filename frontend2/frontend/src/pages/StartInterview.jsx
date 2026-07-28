@@ -266,7 +266,7 @@ const startInterview = async () => {
 
         {/* Note info */}
         <div className="mt-6 text-center text-xs text-secondary-text font-semibold leading-relaxed max-w-sm mx-auto">
-          We will generate 10 custom interview questions based on your background and target position. Camera and audio access required.
+          We will generate 5 custom interview questions based on your background and target position. Camera and audio access required.
         </div>
       </motion.div>
     </div>
