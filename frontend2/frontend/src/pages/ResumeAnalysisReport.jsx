@@ -51,21 +51,21 @@ const ResumeAnalysisReport = () => {
       const canvas = await html2canvas(input, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#0f172a", // Set to your app's background color (prevents transparent/black bugs)
+        backgroundColor: "#0f172a",
         logging: false,
       });
 
       const imgData = canvas.toDataURL("image/png", 1.0);
 
-      // Calculate exact dimensions to prevent stretching or cutoffs
-      const pdfWidth = 210; // Standard A4 width in mm
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Create PDF with dynamic height
       const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Interview_Report_${report.interview_id}.pdf`);
+
+      // FIX: Use 'id' from useParams or 'analysis' instead of 'report'
+      pdf.save(`Resume_Report_${id}.pdf`);
 
       toast.success("PDF Downloaded successfully!", { id: toastId });
     } catch (err) {
