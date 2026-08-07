@@ -304,13 +304,13 @@ const InterviewAnalysis = () => {
           />
           <CircularScore
             score={avgConfidence}
-            label="Confidence Meter"
+            label="Face Detection Score"
             color="#F59E0B"
             shadowColor="rgba(245, 158, 11, 0.4)"
           />
           <CircularScore
             score={avgEyeContact}
-            label="Gaze Contact"
+            label="Eye Contact"
             color="#06B6D4"
             shadowColor="rgba(6, 182, 212, 0.4)"
           />
