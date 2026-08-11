@@ -25,6 +25,7 @@ from .serializers import (
 from .models import Resume, Interview, InterviewQuestion, InterviewAnswer, EmotionAnalysis, ResumeAnalysis
 from . import utils
 import os
+from .serializers import UserProfileSerializer
 
 # Create your views here.
 
@@ -610,3 +611,50 @@ def interview_analysis(request, pk):
             "results": results,
         }
     )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    try:
+        serializer = UserProfileSerializer(request.user)
+        return Response(
+            {
+                'message': 'User profile fetched successfully',
+                'data': serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        return Response(
+            {'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# * Update authenticated user profile info
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def update_user_profile(request):
+    try:
+        # partial=True allows sending only fields that need updating
+        partial = request.method == 'PATCH'
+        serializer = UserProfileSerializer(
+            request.user, data=request.data, partial=partial
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    'message': 'Profile updated successfully',
+                    'data': serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response(
+            {'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

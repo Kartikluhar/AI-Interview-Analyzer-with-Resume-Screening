@@ -13,7 +13,7 @@ import {
   Menu,
   X,
   Bell,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { logoutUser } from "../services/authService";
@@ -26,6 +26,7 @@ function Layout() {
   const [isMedium, setIsMedium] = useState(false);
   const [username, setUsername] = useState("User");
 
+  // 1. Initial Load & Auth Check
   useEffect(() => {
     const access = localStorage.getItem("access");
     if (!access) {
@@ -38,6 +39,23 @@ function Layout() {
     }
   }, [navigate, location]);
 
+  // 2. NEW: Listen for changes to local storage (triggered by Settings.jsx)
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      const updatedUser = localStorage.getItem("username");
+      if (updatedUser) {
+        setUsername(updatedUser);
+      }
+    };
+
+    // Listen for the custom event we dispatched in Settings.jsx
+    window.addEventListener("storage", handleStorageUpdate);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("storage", handleStorageUpdate);
+  }, []);
+
+  // 3. Handle Responsive Resizing
   useEffect(() => {
     const handleResize = () => {
       setIsMedium(window.innerWidth >= 768 && window.innerWidth < 1024);
@@ -69,15 +87,14 @@ function Layout() {
     { name: "Resume Analysis List", path: "/resumes/analysis", icon: History },
     { name: "Interview", path: "/start-interview", icon: Play },
     { name: "Interview Report", path: "/interviews", icon: History },
+    { name: "Settings", path: "/settings", icon: Settings },
   ];
 
   const isActive = (path) => {
-    // Exact match for Dashboard
     if (path === "/") {
       return location.pathname === "/";
     }
 
-    // Special case: Prevent "/resumes" from lighting up when on "/resumes/analysis"
     if (path === "/resumes") {
       return (
         location.pathname === "/resumes" ||
@@ -85,8 +102,6 @@ function Layout() {
           !location.pathname.startsWith("/resumes/analysis"))
       );
     }
-
-    // Default behavior for everything else
     return location.pathname.startsWith(path);
   };
 
@@ -97,14 +112,13 @@ function Layout() {
         background: "#111827",
         color: "#fff",
         border: "1px solid rgba(255, 255, 255, 0.08)",
-      }
+      },
     });
   };
 
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between py-6">
       <div className="space-y-6 px-4">
-        {/* Navigation List */}
         <nav className="space-y-2">
           {navItems.map((item) => {
             const active = isActive(item.path);
@@ -120,12 +134,22 @@ function Layout() {
                     : "text-secondary-text hover:text-white hover:bg-white/5"
                 }`}
               >
-                {/* Left Indicator bar */}
                 {active && (
                   <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-r" />
                 )}
-                <Icon size={20} className={`${active ? "text-white" : "text-secondary-text group-hover:text-white"}`} />
-                <span className={`font-medium transition-all ${isMedium ? "hidden" : "block"}`}>
+                <Icon
+                  size={20}
+                  className={`${
+                    active
+                      ? "text-white"
+                      : "text-secondary-text group-hover:text-white"
+                  }`}
+                />
+                <span
+                  className={`font-medium transition-all ${
+                    isMedium ? "hidden" : "block"
+                  }`}
+                >
                   {item.name}
                 </span>
               </Link>
@@ -135,28 +159,14 @@ function Layout() {
       </div>
 
       <div className="space-y-2 px-4 border-t border-border-custom pt-6">
-        {/* <button
-          onClick={() => showPlaceholder("Profile")}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-secondary-text hover:text-white hover:bg-white/5 transition-all cursor-pointer"
-        >
-          <User size={20} />
-          <span className={`font-medium ${isMedium ? "hidden" : "block"}`}>Profile</span>
-        </button>
-
-        <button
-          onClick={() => showPlaceholder("Settings")}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-secondary-text hover:text-white hover:bg-white/5 transition-all cursor-pointer"
-        >
-          <Settings size={20} />
-          <span className={`font-medium ${isMedium ? "hidden" : "block"}`}>Settings</span>
-        </button> */}
-
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-danger hover:bg-danger/10 transition-all cursor-pointer"
         >
           <LogOut size={20} />
-          <span className={`font-medium ${isMedium ? "hidden" : "block"}`}>Logout</span>
+          <span className={`font-medium ${isMedium ? "hidden" : "block"}`}>
+            Logout
+          </span>
         </button>
       </div>
     </div>
@@ -187,14 +197,6 @@ function Layout() {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* <button
-            onClick={() => showPlaceholder("Notifications")}
-            className="p-2.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-border-custom text-secondary-text hover:text-white transition relative cursor-pointer"
-          >
-            <Bell size={20} />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full" />
-          </button> */}
-
           <div className="h-8 w-px bg-border-custom hidden sm:block" />
 
           {/* User Profile */}
@@ -208,7 +210,7 @@ function Layout() {
 
             <div className="relative group cursor-pointer">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-accent to-accent-hover flex items-center justify-center text-white font-bold border border-white/10 shadow-md">
-                {username.charAt(0).toUpperCase()}
+                {username ? username.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-success border-2 border-primary-bg rounded-full" />
             </div>
@@ -218,7 +220,6 @@ function Layout() {
 
       {/* Main Container */}
       <div className="flex flex-1 pt-16 relative">
-        {/* Desktop Left Sidebar */}
         <aside
           className={`fixed top-16 bottom-0 left-0 bg-secondary-bg/85 backdrop-blur-md border-r border-border-custom z-30 transition-all duration-300 hidden md:block ${
             isMedium ? "w-20" : "w-64"
@@ -227,7 +228,6 @@ function Layout() {
           {sidebarContent}
         </aside>
 
-        {/* Mobile Sidebar Drawer */}
         {mobileMenuOpen && (
           <>
             <div
@@ -240,7 +240,6 @@ function Layout() {
           </>
         )}
 
-        {/* Main Content Area */}
         <main
           className={`flex-1 flex flex-col min-h-[calc(100vh-4rem)] transition-all duration-300 ${
             isMedium ? "md:pl-20" : "md:pl-64"
@@ -250,7 +249,6 @@ function Layout() {
             <Outlet />
           </div>
 
-          {/* Footer */}
           <footer className="border-t border-border-custom py-6 px-6 md:px-10 bg-secondary-bg/30">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-secondary-text">
               <div className="flex items-center gap-2">

@@ -4,6 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import Resume, Interview, InterviewQuestion, InterviewAnswer, EmotionAnalysis, ResumeAnalysis
 from .utils import generate_questions
+from django.contrib.auth import get_user_model
 
 
 import re
@@ -191,3 +192,23 @@ class EmotionAnalysisSerializer(serializers.ModelSerializer):
 class InterviewAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'interview_question', 'video_file', 'answer_text', 'answer_score', 'created_at']
+
+
+User = get_user_model()
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+        ]  # Add custom profile fields here if using a custom User model
+        # Prevent changing email directly if needed
+        read_only_fields = ['id', 'email']
+

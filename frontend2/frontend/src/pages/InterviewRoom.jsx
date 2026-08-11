@@ -23,12 +23,15 @@ const InterviewRoom = () => {
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
 
-  // NEW REFS: For managing Speech Recognition safely
+  // Refs for managing Speech Recognition safely
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
-  const ignoreNextEndRef = useRef(false); // Prevents premature submission when repeating
+  const ignoreNextEndRef = useRef(false);
 
   const spokenQuestionIdRef = useRef(null);
+
+  // NEW REF: Track the current speech to prevent early onend triggers
+  const currentSpeechRef = useRef(null);
 
   const videoConstraints = {
     width: 1280,
@@ -75,19 +78,33 @@ const InterviewRoom = () => {
       return;
     }
 
-    // FIX ISSUE 1: Stop listening and clear timers if user clicks "Repeat Question"
-    window.speechSynthesis.cancel(); // Stop any ongoing TTS
-    if (recognitionRef.current) {
-      ignoreNextEndRef.current = true; // Tell the onend listener NOT to submit the answer
-      recognitionRef.current.stop();
+    // FIX: Remove the onend listener from the previous speech so cancel() doesn't trigger speech_to_text
+    if (currentSpeechRef.current) {
+      currentSpeechRef.current.onend = null;
     }
+    window.speechSynthesis.cancel(); // Stop any ongoing TTS
+
+    if (recognitionRef.current) {
+      ignoreNextEndRef.current = true;
+      // FIX: Use abort() instead of stop() to instantly kill recognition and drop any buffered audio
+      recognitionRef.current.abort();
+    }
+
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
     }
 
-    // Clear out any half-listened answer so it doesn't get merged
-    setUserAnswer("");
+    // Safely stop the old media recorder before overwriting it
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.onstop = null; // prevent it from submitting
+      mediaRecorderRef.current.stop();
+    }
 
+    // Clear out any half-listened answer
+    setUserAnswer("");
     metricsRef.current = [];
     recordedChunksRef.current = [];
 
@@ -111,11 +128,12 @@ const InterviewRoom = () => {
 
     // Speak the question
     const speech = new SpeechSynthesisUtterance(question.question_text);
+    currentSpeechRef.current = speech; // Save to ref
     speech.lang = "en-US";
     window.speechSynthesis.speak(speech);
 
     speech.onend = () => {
-      speech_to_text(); // User's turn to speak ONLY after laptop is done
+      speech_to_text(); // User's turn to speak ONLY after laptop is completely done
     };
   }, [question]);
 
@@ -167,7 +185,6 @@ const InterviewRoom = () => {
           eyeContact: isLookingForward,
         });
       } else {
-        // FIX ISSUE 2: Change neutral to no_face_detected
         metricsRef.current.push({
           presence: false,
           confidence: 0,
@@ -277,12 +294,10 @@ const InterviewRoom = () => {
         presenceCount++;
         if (m.eyeContact) eyeContactCount++;
         totalConfidence += m.confidence;
-        // FIX ISSUE 2: Only count actual emotions if a face was present
         emotionCounts[m.emotion] = (emotionCounts[m.emotion] || 0) + 1;
       }
     });
 
-    // If no face was present for the entire recording
     if (presenceCount === 0) {
       return {
         face_presence: 0,
@@ -300,7 +315,7 @@ const InterviewRoom = () => {
     return {
       face_presence: ((presenceCount / totalFrames) * 100).toFixed(2),
       eye_contact: ((eyeContactCount / totalFrames) * 100).toFixed(2),
-      confidence: (totalConfidence / presenceCount).toFixed(2), // Div by presenceCount for true average
+      confidence: (totalConfidence / presenceCount).toFixed(2),
       emotion: mostFrequentEmotion,
     };
   };
@@ -492,7 +507,7 @@ const InterviewRoom = () => {
               )}
             </div>
 
-            {/* UPDATED TIPS SECTION */}
+            {/* TIPS SECTION */}
             <div className="space-y-2 mt-2">
               <div className="text-[10px] text-secondary-text text-center font-semibold leading-relaxed">
                 Tip: AI waits for 5 seconds of silence before automatically

@@ -12,7 +12,8 @@ import InterviewList from "./pages/InterviewList";
 import InterviewAnalysis from "./pages/InterviewAnalysis";
 import Layout from "./components/Layout";
 import ResumeAnalysisReport from "./pages/ResumeAnalysisReport";
-import ResumeList from "./pages/ResumeList";
+import ResumeList from "./pages/ResumeList";4
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -32,11 +33,12 @@ function Router() {
           path="/interviews/:interview_id/analysis"
           element={<InterviewAnalysis />}
         />
+        <Route path="/settings" element={<Settings />} />
         <Route
           path="/resumes/analysis/:id"
           element={<ResumeAnalysisReport />}
         />
-        <Route path='/resumes/analysis' element={<ResumeList />} />
+        <Route path="/resumes/analysis" element={<ResumeList />} />
       </Route>
     </Routes>
   );

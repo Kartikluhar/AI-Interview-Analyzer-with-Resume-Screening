@@ -55,6 +55,13 @@ urlpatterns = [
          views.get_interview_answer, name='get_interview_answer'),
     path('interviews/<int:pk>/emotions/',
          views.get_emotion_analysis, name='get_emotion_analysis'),
+
+    path("profile/", views.get_user_profile, name="get_user_profile"),
+    path(
+        "profile/update/",
+        views.update_user_profile,
+        name="update_user_profile",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # CRITICAL: Serving file uploads (media) during development
